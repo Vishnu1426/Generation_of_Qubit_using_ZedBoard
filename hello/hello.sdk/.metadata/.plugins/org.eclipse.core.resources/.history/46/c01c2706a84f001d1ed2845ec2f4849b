@@ -1,0 +1,80 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include "platform.h"
+#include <xgpio.h>
+#include "xparameters.h"
+#include "sleep.h"
+#include <math.h>
+
+int main()
+    {
+        XGpio input, output;
+        int button_data = 0;
+        int switch_data = 0;
+
+        XGpio_Initialize(&input, XPAR_AXI_GPIO_0_DEVICE_ID);
+        XGpio_Initialize(&output, XPAR_AXI_GPIO_0_DEVICE_ID);
+
+        XGpio_SetDataDirection(&input, 1, 0xF);
+        XGpio_SetDataDirection(&input, 2, 0xF);
+
+        XGpio_SetDataDirection(&output, 1, 0x0);
+
+        init_platform();
+        srand(142612);
+        float f1 = 5.0;
+        float alpha_init, beta_init, alpha, beta, root;
+
+
+
+        while(1)
+            {
+                switch_data = XGpio_DiscreteRead(&input, 2);
+
+                XGpio_DiscreteWrite(&output, 1, switch_data);
+
+                button_data = XGpio_DiscreteRead(&input, 1);
+
+                if(button_data == 0b00000)
+                    {
+
+                    }
+                else if(button_data == 0b00001)
+                    {
+                        xil_printf("\n\n");
+
+                        xil_printf("Qubit Generation started...\n\r");
+
+                        alpha_init = (float)rand()/(float)(RAND_MAX/f1);
+                        beta_init = (float)rand()/(float)(RAND_MAX/f1);
+
+                        float insideroot = 155.0;
+                        root = sqrtf(insideroot);
+
+                        alpha = alpha_init/root;
+                        beta = beta_init/root;
+
+                        printf("The generated qubit is: \n");
+                        printf("(%lf)|0> and (%lf)|1> \n\n", alpha, beta);
+                    }
+                else if(button_data == 0b00010)
+                    {
+                        xil_printf("\n");
+
+                        printf("Measuring Qubit...\n\r");
+
+                        if(alpha < beta)
+							{
+                        		xil_printf("The Qubit collapsed into the state |1>");
+							}
+                        else if(beta < alpha)
+							{
+								xil_printf("The Qubit collapsed into the state |0>");
+							}
+                    }
+
+                usleep(200000);
+            }
+        cleanup_platform();
+        return 0;
+    }
